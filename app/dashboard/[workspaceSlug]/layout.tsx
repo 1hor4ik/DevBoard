@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth-server";
 
 import { Sidebar } from "@/components/ui/dashboard/Sidebar";
 import { Topbar } from "@/components/ui/dashboard/Topbar";
+import { MobileNavigation } from "@/components/ui/dashboard/mobile-navigation";
 
 import SocketProvider from "@/app/providers/SocketProvider";
 
@@ -77,6 +78,12 @@ export default async function DashboardLayout({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
+          navigation={<MobileNavigation workspaceSlug={workspace.slug} workspaces={userWorkspaces.map((membership) => ({
+            id: membership.workspace.id,
+            name: membership.workspace.name,
+            slug: membership.workspace.slug,
+            role: membership.role,
+          }))} />}
           workspaceName={workspace.name}
           userName={session.user.name ?? "User"}
           userEmail={session.user.email ?? ""}

@@ -78,3 +78,44 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Radix keeps the sheet mounted until its closing animation finishes. */
+@keyframes sheet-enter {
+  from { transform: translate(var(--sheet-x, 0), var(--sheet-y, 0)); }
+  to { transform: translate(0, 0); }
+}
+@keyframes sheet-exit {
+  from { transform: translate(0, 0); }
+  to { transform: translate(var(--sheet-x, 0), var(--sheet-y, 0)); }
+}
+@keyframes sheet-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sheet-backdrop-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-slot="sheet-content"][data-side="left"] { --sheet-x: -100%; }
+[data-slot="sheet-content"][data-side="right"] { --sheet-x: 100%; }
+[data-slot="sheet-content"][data-side="top"] { --sheet-y: -100%; }
+[data-slot="sheet-content"][data-side="bottom"] { --sheet-y: 100%; }
+[data-slot="sheet-content"][data-state="open"] {
+  animation: sheet-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[data-slot="sheet-content"][data-state="closed"] {
+  animation: sheet-exit 240ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+[data-slot="sheet-overlay"][data-state="open"] {
+  animation: sheet-backdrop-enter 320ms ease-out both;
+}
+[data-slot="sheet-overlay"][data-state="closed"] {
+  animation: sheet-backdrop-exit 240ms ease-in both;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sheet-content"][data-state],
+  [data-slot="sheet-overlay"][data-state] {
+    animation: none;
+    transition: none;
+  }
+}

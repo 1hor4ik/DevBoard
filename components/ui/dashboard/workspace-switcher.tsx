@@ -52,7 +52,7 @@ export function WorkspaceSwitcher({
 
       <DropdownMenuContent
         align="start"
-        className="w-64 rounded-2xl p-2 z-10 bg-white shadow-lg border border-slate-200"
+        className="z-[60] w-64 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white p-2 shadow-lg"
       >
         <DropdownMenuLabel className="text-xs text-slate-500">
           Workspaces
