@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --app-bg: #faf8f3;
+  --app-surface: #ffffff;
+
+  --brand: #f5b400;
+  --brand-hover: #e6a700;
+  --brand-soft: #fff7d6;
+  --brand-dark: #a26a00;
+
+  --text-main: #020617;
+  --text-muted: #64748b;
+  --border-soft: #e6e8eb;
+
+  --background: #faf8f3;
+  --foreground: #020617;
+
+  --card: #ffffff;
+  --card-foreground: #020617;
+
+  --primary: #f5b400;
+  --primary-foreground: #020617;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --border: #e6e8eb;
+  --input: #e6e8eb;
+  --ring: #f5b400;
+
+  --radius: 0.875rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), var(--font-inter), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  --color-app: var(--app-bg);
+  --color-surface: var(--app-surface);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-dark: var(--brand-dark);
+
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-border-soft: var(--border-soft);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}

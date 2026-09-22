@@ -1,0 +1,248 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { toast } from "sonner";
+
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
+import SignInFrame from "@/components/ui/auth/SignInFrame";
+
+import { signInSchema, SignInSchema } from "@/lib/validations/authValidator";
+import { authClient } from "@/lib/auth-client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+export default function SignInPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<SignInSchema>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+
+    if (error) {
+      toast.error(error);
+    }
+  }, [searchParams]);
+
+  const onSubmit = async (values: SignInSchema) => {
+    console.log("SIGN IN VALUES:", values);
+
+    try {
+      setIsLoading(true);
+
+      const res = await authClient.signIn.email({
+        email: values.email,
+        password: values.password,
+      });
+
+      console.log("SIGN IN RESPONSE:", res);
+
+      if (res.error) {
+        toast.error(res.error.message || "Something went wrong");
+        return;
+      }
+
+      toast.success("Welcome back!");
+      router.push("/onboarding");
+    } catch (error) {
+      console.error("SIGN IN CATCH ERROR:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGithubSignIn = async () => {
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: "/onboarding",
+      });
+    } catch (error) {
+      toast.error("Github sign-in failed!");
+      console.log(error);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/onboarding",
+      });
+    } catch (error) {
+      toast.error("Google sign-in failed!");
+      console.log(error);
+    }
+  };
+
+  return (
+    <main className="relative flex min-h-screen overflow-hidden bg-[#FAF8F3]">
+      <div className="absolute left-[-120px] top-[-120px] h-72 w-72 rounded-full bg-amber-200/40 blur-3xl" />
+      <div className="absolute bottom-[-140px] right-[-120px] h-80 w-80 rounded-full bg-amber-300/30 blur-3xl" />
+
+      <div className="relative z-10 grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
+        <section className="flex items-center justify-center px-6 py-10">
+          <div className="w-full max-w-md">
+            <Link href="/" className="mb-10 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 text-sm font-bold text-white shadow-sm">
+                {"</>"}
+              </div>
+
+              <span className="text-xl font-semibold tracking-tight text-slate-950">
+                DevBoard
+              </span>
+            </Link>
+
+            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-[0_20px_80px_-40px_rgba(15,23,42,0.35)] backdrop-blur">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                  Welcome back
+                </h1>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Sign in to your account and continue managing your projects.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 rounded-xl cursor-pointer"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                >
+                  <FcGoogle className="mr-2 h-5 w-5" />
+                  Google
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 rounded-xl cursor-pointer"
+                  onClick={handleGithubSignIn}
+                  disabled={isLoading}
+                >
+                  <FaGithub className="mr-2 h-5 w-5" />
+                  GitHub
+                </Button>
+              </div>
+
+              <div className="my-6 flex items-center gap-4">
+                <Separator className="flex-1" />
+                <span className="text-xs text-slate-400">or continue with</span>
+                <Separator className="flex-1" />
+              </div>
+
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-5"
+                >
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email address</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="you@company.com"
+                            className="h-11 rounded-xl"
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Password</FormLabel>
+
+                          <Link
+                            href="/forgot-password"
+                            className="text-xs font-medium text-amber-700 transition hover:text-amber-800"
+                          >
+                            Forgot password?
+                          </Link>
+                        </div>
+
+                        <FormControl>
+                          <PasswordInput
+                            {...field}
+                            placeholder="Enter your password"
+                            className="h-11 rounded-xl"
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="h-11 w-full rounded-xl bg-amber-400 font-semibold text-slate-950 shadow-sm transition hover:bg-amber-500 cursor-pointer"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Spinner /> : "Sign in"}
+                  </Button>
+                </form>
+              </Form>
+
+              <p className="mt-6 text-center text-sm text-slate-500">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href="/sign-up"
+                  className="font-semibold text-amber-700 transition hover:text-amber-800"
+                >
+                  Create account
+                </Link>
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <SignInFrame />
+      </div>
+    </main>
+  );
+}
