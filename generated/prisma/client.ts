@@ -91,3 +91,13 @@ export type Account = Prisma.AccountModel
  * 
  */
 export type Verification = Prisma.VerificationModel
+/**
+ * Model Activity
+ * 
+ */
+export type Activity = Prisma.ActivityModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel

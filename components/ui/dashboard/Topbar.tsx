@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { NotificationsMenu } from "./notifications-menu";
 import { UserMenu } from "./user-menu";
 
 type DashboardTopbarProps = {
@@ -30,9 +30,7 @@ export function Topbar({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <button className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50">
-            <Bell className="h-4 w-4" />
-          </button>
+          <NotificationsMenu />
 
           <UserMenu
             userName={userName}

@@ -1,6 +1,11 @@
 "use server";
 
+import {
+  createActivity,
+  createNotifications,
+} from "@/server/services/activity";
 import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { getSession } from "@/lib/auth-server";
@@ -56,23 +61,45 @@ export async function createComment({
   }
 
   try {
-    const comment = await prisma.taskComment.create({
-      data: {
-        content: trimmedContent,
-        taskId: task.id,
-        authorId: session.user.id,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    const comment = await prisma.$transaction(async (tx) => {
+      const saved = await tx.taskComment.create({
+        data: {
+          content: trimmedContent,
+          taskId: task.id,
+          authorId: session.user.id,
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      });
 
+      await createActivity(tx, {
+        workspaceId: task.workspaceId,
+        projectId: task.projectId,
+        taskId: task.id,
+        actorId: session.user.id,
+        type: "COMMENT_CREATED",
+        message: session.user.name + " commented on: " + task.title,
+      });
+      await createNotifications(tx, {
+        workspaceId: task.workspaceId,
+        projectId: task.projectId,
+        taskId: task.id,
+        actorId: session.user.id,
+        type: "COMMENT",
+        message: session.user.name + " commented on: " + task.title,
+        userIds: [task.createdById, task.assigneeId],
+      });
+      return saved;
+    });
+    revalidatePath(`/dashboard/${task.project.workspace.slug}`);
+    revalidatePath(`/dashboard/${task.project.workspace.slug}/activity`);
     return comment;
   } catch (error) {
     console.error("Error creating comment:", error);

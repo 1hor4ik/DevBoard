@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  Activity,
   FolderKanban,
   ListChecks,
   Settings,
@@ -44,6 +45,7 @@ const navItems = [
     href: "/members",
     icon: Users,
   },
+  { label: "Activity", href: "/activity", icon: Activity },
   {
     label: "Settings",
     href: "/settings",
@@ -59,11 +61,19 @@ export function Sidebar({ workspaceSlug, workspaces }: DashboardSidebarProps) {
   );
 }
 
-export function SidebarContent({ workspaceSlug, workspaces, onNavigate }: DashboardSidebarProps & { onNavigate?: () => void }) {
+export function SidebarContent({
+  workspaceSlug,
+  workspaces,
+  onNavigate,
+}: DashboardSidebarProps & { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <>
-      <Link href="/" onClick={onNavigate} className="mb-8 flex items-center gap-3">
+      <Link
+        href="/"
+        onClick={onNavigate}
+        className="mb-8 flex items-center gap-3"
+      >
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 text-sm font-bold text-white shadow-sm">
           {"</>"}
         </div>
@@ -84,7 +94,9 @@ export function SidebarContent({ workspaceSlug, workspaces, onNavigate }: Dashbo
         {navItems.map((item) => {
           const Icon = item.icon;
           const href = `/dashboard/${workspaceSlug}${item.href}`;
-          const active = pathname === href || (item.href !== "" && pathname.startsWith(`${href}/`));
+          const active =
+            pathname === href ||
+            (item.href !== "" && pathname.startsWith(`${href}/`));
 
           return (
             <Link

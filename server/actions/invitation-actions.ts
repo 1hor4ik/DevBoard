@@ -1,5 +1,6 @@
 "use server";
 
+import { createNotifications } from "@/server/services/activity";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -95,15 +96,30 @@ export async function createInvitation({
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await prisma.workspaceInvitation.create({
-      data: {
-        email: trimmedEmail,
-        role,
-        workspaceId: workspace.id,
-        token,
-        invitedById: session.user.id,
-        expiresAt,
-      },
+    await prisma.$transaction(async (tx) => {
+      const invitation = await tx.workspaceInvitation.create({
+        data: {
+          email: trimmedEmail,
+          role,
+          workspaceId: workspace.id,
+          token,
+          invitedById: session.user.id,
+          expiresAt,
+        },
+      });
+
+      const recipient = await tx.user.findUnique({
+        where: { email: trimmedEmail },
+      });
+      if (recipient)
+        await createNotifications(tx, {
+          workspaceId: workspace.id,
+          actorId: session.user.id,
+          type: "INVITATION",
+          message: session.user.name + " invited you to " + workspace.name,
+          userIds: [recipient.id],
+          invitationId: invitation.id,
+        });
     });
 
     const inviteUrl = `${process.env.BETTER_AUTH_URL}/invite/${token}`;
@@ -120,6 +136,8 @@ export async function createInvitation({
       }),
     });
 
+    revalidatePath(`/dashboard/${workspace.slug}`);
+    revalidatePath(`/dashboard/${workspace.slug}/activity`);
     revalidatePath(`/dashboard/${workspace.slug}/members`);
   } catch (error) {
     console.error("Error creating invitation:", error);
@@ -172,6 +190,18 @@ export async function acceptInvitation(token: string) {
 
   try {
     await prisma.$transaction([
+      prisma.activity.create({
+        data: {
+          workspaceId: workspace.id,
+          actorId: session.user.id,
+          type: "MEMBER_JOINED",
+          message: session.user.name + " joined the workspace",
+        },
+      }),
+      prisma.notification.updateMany({
+        where: { userId: session.user.id, invitationId: invitation.id },
+        data: { isRead: true },
+      }),
       prisma.workspaceMember.create({
         data: {
           userId: session.user.id,
@@ -190,6 +220,8 @@ export async function acceptInvitation(token: string) {
       }),
     ]);
 
+    revalidatePath(`/dashboard/${workspace.slug}`);
+    revalidatePath(`/dashboard/${workspace.slug}/activity`);
     revalidatePath(`/dashboard/${workspace.slug}/members`);
 
     return {

@@ -1,3 +1,4 @@
+import { ActivityFeed } from "@/components/ui/dashboard/activity-feed";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -8,7 +9,6 @@ import { DashboardToast } from "@/components/ui/dashboard/DashboardToast";
 import { DashboardStatCard } from "@/components/ui/dashboard/StatCard";
 import {
   CheckCircle2,
-  Clock3,
   FolderKanban,
   ListChecks,
   CalendarDays,
@@ -240,27 +240,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           )}
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-              <Clock3 className="h-5 w-5" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-slate-950">
-                Recent activity
-              </h3>
-              <p className="text-sm text-slate-500">
-                Activity log will appear here.
-              </p>
-            </div>
-          </div>
-
-          <EmptyState
-            title="No activity yet"
-            text="When you create projects and tasks, updates will show here."
-          />
-        </div>
+        <ActivityFeed workspaceSlug={workspaceSlug} compact />
       </section>
     </div>
   );
