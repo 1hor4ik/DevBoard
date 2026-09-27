@@ -48,17 +48,17 @@ Notifications refresh when opened, when the window regains focus, and every 15 s
 
 ## Tech stack
 
-| Area | Technologies |
-| --- | --- |
-| Application | Next.js 16 App Router, React 19, TypeScript |
-| Styling and UI | Tailwind CSS 4, Radix UI, shadcn-style components, Lucide icons |
-| Database | PostgreSQL, Prisma 7, PostgreSQL driver adapter |
-| Authentication | Better Auth |
-| Forms | React Hook Form, Zod |
-| Drag and drop | dnd-kit |
-| Realtime server | Express, Socket.IO, tsx |
-| Email | Resend, React Email |
-| Feedback | Sonner, react-spinners |
+| Area            | Technologies                                                    |
+| --------------- | --------------------------------------------------------------- |
+| Application     | Next.js 16 App Router, React 19, TypeScript                     |
+| Styling and UI  | Tailwind CSS 4, Radix UI, shadcn-style components, Lucide icons |
+| Database        | PostgreSQL, Prisma 7, PostgreSQL driver adapter, Neon.db        |
+| Authentication  | Better Auth                                                     |
+| Forms           | React Hook Form, Zod                                            |
+| Drag and drop   | dnd-kit                                                         |
+| Realtime server | Express, Socket.IO, tsx                                         |
+| Email           | Resend, React Email                                             |
+| Feedback        | Sonner, react-spinners                                          |
 
 ## How it works
 
@@ -165,37 +165,3 @@ server/services/               Internal activity/notification helpers
 socket-server/                 Separate Express and Socket.IO application
 tests/                         Activity and notification regression tests
 ```
-
-## Checks
-
-Run the focused regression tests without connecting to a database:
-
-```bash
-node --test tests/activity-notifications.test.cjs
-```
-
-These cover recipient deduplication, exclusion of the actor and former members, invitation recipients, notification ownership, and unauthenticated access.
-
-Other development commands:
-
-```bash
-npm run lint
-npx tsc --noEmit
-npm run build
-npm start
-```
-
-`npm start` serves a previously built Next.js app; it does not start the separate socket server. At the time of this update, type checking still reports existing password-input prop mismatches in the sign-in and reset-password forms. A clean production build is not yet claimed.
-
-## Learning goals and current limitations
-
-This is a learning and portfolio project, not a production-ready service. It explores relational modeling, authentication, server-side authorization, transactions, realtime events, responsive UI, and regression testing.
-
-- Socket room joins and relayed event payloads still need authenticated identity and workspace authorization on the socket server before production use. Room membership alone is not an authorization boundary.
-- Notifications use polling; durable realtime delivery and reconnect recovery are future improvements.
-- Activity records begin with actions performed after the feature was added; older actions are not backfilled.
-- Notifications show the latest 30 accessible updates. Task notifications currently navigate to the project board rather than opening a specific task dialog.
-- Email delivery and database changes are separate operations; an outbox/retry mechanism would improve reliability.
-- Production deployment needs configurable socket URLs, appropriate CORS, and a separately hosted long-running socket service.
-
-The next improvements can focus on these foundations, broader end-to-end tests, and resolving the remaining type-checking issues.
