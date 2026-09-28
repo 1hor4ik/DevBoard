@@ -15,7 +15,7 @@ import {
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth-server";
 
-import { ProjectBoard } from "@/components/ui/tasks/project-board";
+import { ProjectBoard } from "@/components/tasks/project-board";
 
 type ProjectDetailPageProps = {
   params: Promise<{

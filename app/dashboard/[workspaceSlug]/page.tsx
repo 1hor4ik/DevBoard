@@ -1,12 +1,12 @@
-import { ActivityFeed } from "@/components/ui/dashboard/activity-feed";
+import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth-server";
-import { DashboardToast } from "@/components/ui/dashboard/DashboardToast";
+import { DashboardToast } from "@/components/dashboard/dashboard-toast";
 
-import { DashboardStatCard } from "@/components/ui/dashboard/StatCard";
+import { DashboardStatCard } from "@/components/dashboard/stat-card";
 import {
   CheckCircle2,
   FolderKanban,

@@ -1,16 +1,19 @@
 "use client";
 
+import type { TaskTypingPresence } from "@/types/socket";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { socket } from "@/lib/socket-client/socket";
-
-type TypingUser = { socketId: string; userId: string; name: string };
 
 export function useTaskTyping(
   taskId: string,
   open: boolean,
   user?: { id: string; name?: string | null },
 ) {
-  const [presence, setPresence] = useState<{ taskId: string; users: TypingUser[] }>({ taskId, users: [] });
+  const [presence, setPresence] = useState<TaskTypingPresence>({
+    taskId,
+    users: [],
+  });
   const lastSent = useRef(0);
 
   const stopTyping = useCallback(() => {
@@ -20,7 +23,7 @@ export function useTaskTyping(
 
   useEffect(() => {
     if (!open) return;
-    const onTyping = (payload: { taskId: string; users: TypingUser[] }) => {
+    const onTyping = (payload: TaskTypingPresence) => {
       if (payload.taskId === taskId) setPresence(payload);
     };
     const clear = () => setPresence({ taskId, users: [] });
@@ -34,17 +37,27 @@ export function useTaskTyping(
   }, [open, taskId, stopTyping]);
 
   const notifyTyping = (value: string) => {
-    if (!value.trim()) { stopTyping(); return; }
+    if (!value.trim()) {
+      stopTyping();
+      return;
+    }
     if (!open || !user || !socket.connected) return;
     const now = Date.now();
     if (now - lastSent.current < 800) return;
     lastSent.current = now;
-    socket.emit("taskTypingStart", { taskId, userId: user.id, name: user.name || "Someone" });
+    socket.emit("taskTypingStart", {
+      taskId,
+      userId: user.id,
+      name: user.name || "Someone",
+    });
   };
 
-  const others = open && presence.taskId === taskId
-    ? presence.users.filter((entry) => entry.userId !== user?.id)
-    : [];
-  const users = Array.from(new Map(others.map((entry) => [entry.userId, entry])).values());
+  const others =
+    open && presence.taskId === taskId
+      ? presence.users.filter((entry) => entry.userId !== user?.id)
+      : [];
+  const users = Array.from(
+    new Map(others.map((entry) => [entry.userId, entry])).values(),
+  );
   return { users, notifyTyping, stopTyping };
 }

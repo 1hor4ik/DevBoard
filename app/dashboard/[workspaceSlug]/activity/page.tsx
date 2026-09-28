@@ -1,4 +1,4 @@
-import { ActivityFeed } from "@/components/ui/dashboard/activity-feed";
+import { ActivityFeed } from "@/components/dashboard/activity-feed";
 
 export default async function ActivityPage({
   params,

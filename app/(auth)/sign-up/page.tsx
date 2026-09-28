@@ -19,11 +19,11 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 
-import { SignUpFrame } from "@/components/ui/auth/SignUpFrame";
+import { SignUpFrame } from "@/components/auth/sign-up-frame";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordInput } from "@/components/shared/password-input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 

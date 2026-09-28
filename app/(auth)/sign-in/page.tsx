@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -11,14 +11,14 @@ import { toast } from "sonner";
 
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
-import SignInFrame from "@/components/ui/auth/SignInFrame";
+import SignInFrame from "@/components/auth/sign-in-frame";
 
 import { signInSchema, SignInSchema } from "@/lib/validations/authValidator";
 import { authClient } from "@/lib/auth-client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordInput } from "@/components/shared/password-input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -32,6 +32,20 @@ import {
 } from "@/components/ui/form";
 
 export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-[#FAF8F3]">
+          <Spinner className="size-6 text-amber-600" />
+        </main>
+      }
+    >
+      <SignInContent />
+    </Suspense>
+  );
+}
+
+function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { Resend } from "resend";
 
 import prisma from "@/lib/prisma";
-import ForgotPasswordEmail from "@/components/ui/emails/forgot-password-email";
+import ForgotPasswordEmail from "@/components/emails/forgot-password-email";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 export default resend;

@@ -1,5 +1,7 @@
 "use client";
 
+import type { Task } from "@/types/task";
+
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
@@ -9,7 +11,6 @@ import {
   Smile,
 } from "lucide-react";
 
-import { TaskPriority, TaskStatus } from "@/generated/prisma/browser";
 import { createComment } from "@/server/actions/comment-actions";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -17,40 +18,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import EmojiPicker from "emoji-picker-react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { authClient } from "@/lib/auth-client";
-import { useTaskTyping } from "./use-task-typing";
+import { useTaskTyping } from "@/hooks/use-task-typing";
 
 import { socket } from "@/lib/socket-client/socket";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-
-type Task = {
-  id: string;
-  title: string;
-  description: string | null;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate: Date | string | null;
-  createdAt: Date | string;
-  assignee: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-  comments: {
-    id: string;
-    content: string;
-    createdAt: Date | string;
-
-    author: {
-      id: string;
-      name: string | null;
-      image?: string | null;
-      email: string;
-    };
-  }[];
-};
 
 type CommentsDialogProps = {
   open: boolean;

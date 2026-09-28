@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth-server";
 
-import { SearchInput } from "@/components/ui/shared/search-input";
+import { SearchInput } from "@/components/shared/search-input";
 
 import {
   ArrowRight,
@@ -16,7 +16,7 @@ import {
 
 import Link from "next/link";
 
-import { CreateProjectDialog } from "@/components/ui/projects/create-project-dialog";
+import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
 
 type ProjectsPageProps = {
   params: Promise<{

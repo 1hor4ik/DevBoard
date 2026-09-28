@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkspaceSummary } from "@/types/workspace";
+
 import Link from "next/link";
 import { ChevronDown, Plus, Check } from "lucide-react";
 
@@ -12,16 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type Workspace = {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-};
-
 type WorkspaceSwitcherProps = {
   currentWorkspaceSlug: string;
-  workspaces: Workspace[];
+  workspaces: WorkspaceSummary[];
 };
 
 export function WorkspaceSwitcher({

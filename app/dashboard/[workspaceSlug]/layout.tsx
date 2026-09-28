@@ -4,9 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth-server";
 
-import { Sidebar } from "@/components/ui/dashboard/Sidebar";
-import { Topbar } from "@/components/ui/dashboard/Topbar";
-import { MobileNavigation } from "@/components/ui/dashboard/mobile-navigation";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { Topbar } from "@/components/dashboard/topbar";
+import { MobileNavigation } from "@/components/dashboard/mobile-navigation";
 
 import SocketProvider from "@/app/providers/SocketProvider";
 

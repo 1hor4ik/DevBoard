@@ -1,5 +1,8 @@
 "use client";
 
+import type { EditableTask, TaskMember } from "@/types/task";
+import { statusOptions, priorityOptions } from "@/lib/constants/tasks";
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,6 +13,9 @@ import {
   createTaskSchema,
   type CreateTaskSchema,
 } from "@/lib/validations/taskValidator";
+
+import { updateTask } from "@/server/actions/task-actions";
+import { socket } from "@/lib/socket-client/socket";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,131 +39,72 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { createTask } from "@/server/actions/task-actions";
-import { socket } from "@/lib/socket-client/socket";
-
-type TaskStatus = "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-
-type TaskPriority = "LOW" | "MEDIUM" | "HIGH";
-
-type TaskMember = {
-  id: string;
-  name: string;
-  email: string;
-};
-
-type CreateTaskDialogProps = {
+type EditTaskDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultStatus: TaskStatus;
   workspaceSlug: string;
   projectId: string;
+  task: EditableTask;
   members: TaskMember[];
 };
 
-const statusOptions: {
-  label: string;
-  value: TaskStatus;
-}[] = [
-  {
-    label: "Todo",
-    value: "TODO",
-  },
-  {
-    label: "In progress",
-    value: "IN_PROGRESS",
-  },
-  {
-    label: "Review",
-    value: "REVIEW",
-  },
-  {
-    label: "Done",
-    value: "DONE",
-  },
-];
-
-const priorityOptions: {
-  label: string;
-  value: TaskPriority;
-}[] = [
-  {
-    label: "Low",
-    value: "LOW",
-  },
-  {
-    label: "Medium",
-    value: "MEDIUM",
-  },
-  {
-    label: "High",
-    value: "HIGH",
-  },
-];
-
-export function CreateTaskDialog({
+export function EditTaskDialog({
   open,
   onOpenChange,
-  defaultStatus,
   workspaceSlug,
   projectId,
+  task,
   members,
-}: CreateTaskDialogProps) {
+}: EditTaskDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<CreateTaskSchema>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      status: defaultStatus,
-      priority: "MEDIUM",
-      assigneeId: "",
-      dueDate: "",
+      title: task.title,
+      description: task.description || "",
+      status: task.status,
+      priority: task.priority,
+      assigneeId: task.assignee?.id || "",
+      dueDate: task.dueDate ? formatDateForInput(task.dueDate) : "",
     },
   });
 
   useEffect(() => {
     if (open) {
       form.reset({
-        title: "",
-        description: "",
-        status: defaultStatus,
-        priority: "MEDIUM",
-        assigneeId: "",
-        dueDate: "",
+        title: task.title,
+        description: task.description || "",
+        status: task.status,
+        priority: task.priority,
+        assigneeId: task.assignee?.id || "",
+        dueDate: task.dueDate ? formatDateForInput(task.dueDate) : "",
       });
     }
-  }, [open, defaultStatus, form]);
+  }, [open, task, form]);
 
   const onSubmit = async (values: CreateTaskSchema) => {
     try {
       setIsLoading(true);
 
-      const createdTask = await createTask(
+      const updatedTask = await updateTask(
         workspaceSlug,
         projectId,
+        task.id,
         values.title,
-        values.description,
+        values.description || "",
         values.status,
         values.priority,
-        values.assigneeId,
-        values.dueDate,
+        values.assigneeId || "",
+        values.dueDate || "",
       );
 
-      socket.emit("taskCreated", {
-        workspaceSlug,
-        projectId,
-        task: createdTask,
-      });
-
-      toast.success("Task created successfully!");
-
-      form.reset();
+      socket.emit("taskEdited", { projectId, task: updatedTask });
+      toast.success("Task updated!");
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Failed to update task");
     } finally {
       setIsLoading(false);
     }
@@ -169,11 +116,11 @@ export function CreateTaskDialog({
         <div className="border-b border-slate-200 px-6 py-5">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold tracking-tight text-slate-950">
-              Create new task
+              Edit task
             </DialogTitle>
 
             <DialogDescription className="text-sm text-slate-500">
-              Add a task to this project and assign it to a workspace member.
+              Update task details, status, priority, assignee, or due date.
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -191,7 +138,6 @@ export function CreateTaskDialog({
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="Design dashboard sidebar"
                         disabled={isLoading}
                         className="h-11 rounded-xl"
                       />
@@ -212,7 +158,6 @@ export function CreateTaskDialog({
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder="Describe what should be done..."
                         disabled={isLoading}
                         className="min-h-28 resize-none rounded-xl"
                       />
@@ -344,7 +289,7 @@ export function CreateTaskDialog({
                   disabled={isLoading}
                   className="h-11 cursor-pointer rounded-xl bg-amber-400 px-5 font-semibold text-slate-950 shadow-sm transition hover:bg-amber-500"
                 >
-                  {isLoading ? <Spinner /> : "Create task"}
+                  {isLoading ? <Spinner /> : "Save changes"}
                 </Button>
               </div>
             </form>
@@ -353,4 +298,8 @@ export function CreateTaskDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function formatDateForInput(date: Date | string) {
+  return new Date(date).toISOString().split("T")[0];
 }

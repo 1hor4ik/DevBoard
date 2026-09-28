@@ -7,12 +7,12 @@ import Image from "next/image";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth-server";
 
-import { SearchInput } from "@/components/ui/shared/search-input";
+import { SearchInput } from "@/components/shared/search-input";
 
-import SendInvitationDialog from "@/components/ui/invitation/send-invitation-dialog";
+import SendInvitationDialog from "@/components/invitations/send-invitation-dialog";
 
-import CopyInviteLinkButton from "@/components/ui/invitation/copy-invite-link-button";
-import CancelInvitationButton from "@/components/ui/invitation/cancel-invitation-button";
+import CopyInviteLinkButton from "@/components/invitations/copy-invite-link-button";
+import CancelInvitationButton from "@/components/invitations/cancel-invitation-button";
 
 type MembersPageProps = {
   params: Promise<{

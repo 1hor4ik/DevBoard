@@ -148,20 +148,56 @@ To explore collaboration, open the same project in two separate browser sessions
 ## Project structure
 
 ```text
-app/
-  (auth)/                      Sign-in, sign-up, and password recovery
-  api/auth/                    Better Auth route handler
-  dashboard/[workspaceSlug]/   Overview, projects, tasks, members, activity, settings
-  invite/                      Invitation acceptance
-components/ui/
-  dashboard/                   Navigation, notifications, activity, workspace UI
-  tasks/                       Board, task dialogs, comments, typing indicators
-  emails/                      Email templates
-lib/                           Authentication, Prisma, validation, socket client
-prisma/                        Database schema and migrations
-generated/prisma/              Generated Prisma client
-server/actions/                Authenticated mutations and notification queries
-server/services/               Internal activity/notification helpers
+app/                           Routes, layouts, loading states, page-specific components
+components/
+  ui/                          Low-level UI primitives (shadcn/Radix, inputs, buttons)
+  auth/                        Sign-in and sign-up presentation
+  onboarding/                  Onboarding layout
+  dashboard/                   Navigation, activity, notifications, workspace switcher
+  tasks/                       Kanban board, task dialogs, comments
+  projects/                    Project creation
+  invitations/                 Invitation controls
+  emails/                      React Email templates
+  shared/                      Reusable application inputs (search, password)
+  skeletons/                   Loading placeholders for application screens
+  landing/                     Homepage, demo board, FAQ, scroll animations, scoped CSS
+hooks/                         Reusable React hooks, including use-task-typing
+types/                        Shared task, workspace, and socket payload types
+lib/
+  constants/                   Shared task status and priority options
+  validations/                 Zod schemas and their inferred form types
+  socket-client/               Shared Socket.IO client
+  ...                          Authentication, Prisma connection, utility functions
+prisma/                        Schema and versioned database migrations
+generated/prisma/             Generated Prisma client; do not edit manually
+server/
+  actions/                     Authenticated server actions and queries
+  services/                    Internal transactional activity/notification helpers
 socket-server/                 Separate Express and Socket.IO application
-tests/                         Activity and notification regression tests
 ```
+
+### Where new code belongs
+
+- Keep `components/ui` generic: a button or dialog should not know about tasks or workspaces. Application components belong in the matching folder alongside `ui`.
+- Put reusable stateful React logic in `hooks`. Components import `useTaskTyping` from `@/hooks/use-task-typing`.
+- Put types used across files in `types`. Task statuses and priorities come from Prisma enum types rather than duplicated string unions. Keep component-specific props beside the component and form types beside their Zod schema.
+- Keep shared display options in `lib/constants`; keep database operations on the server. Do not import server implementation code into client components except for Next.js server actions.
+- Use kebab-case filenames, PascalCase component names, `@/` imports across folders, and short relative imports for neighboring components.
+- Keep route-specific components next to their route when they are not shared. There is no need for extra repository, controller, or barrel-file layers.
+- `work/activity` was temporary migration scratch space, not part of the application. It has been removed; the real migration remains under `prisma/migrations`.
+
+## Landing page
+
+The homepage includes an interactive example board, feature illustrations, FAQ, and section reveal animations. The demo runs locally in component state and never writes to your database. Anchor navigation scrolls smoothly; reduced-motion preferences disable decorative motion.
+
+## Development checks
+
+```bash
+npx tsc --noEmit
+npm run lint
+npm run build
+```
+
+There is currently no committed automated test suite or seed script. For a manual smoke test, sign in with two accounts in the same workspace, then create/edit/move/delete a task, exchange comments, check typing indicators, and verify the activity feed and notifications. Also check mobile navigation and the landing-page links.
+
+`npm start` serves the built Next.js application. Run the Socket.IO service separately.

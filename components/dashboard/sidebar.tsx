@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkspaceNavigationProps } from "@/types/workspace";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,19 +12,7 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { WorkspaceSwitcher } from "@/components/ui/dashboard/workspace-switcher";
-
-type SidebarWorkspaceProps = {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-};
-
-export type DashboardSidebarProps = {
-  workspaceSlug: string;
-  workspaces: SidebarWorkspaceProps[];
-};
+import { WorkspaceSwitcher } from "@/components/dashboard/workspace-switcher";
 
 const navItems = [
   {
@@ -53,7 +43,10 @@ const navItems = [
   },
 ];
 
-export function Sidebar({ workspaceSlug, workspaces }: DashboardSidebarProps) {
+export function Sidebar({
+  workspaceSlug,
+  workspaces,
+}: WorkspaceNavigationProps) {
   return (
     <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white/80 p-4 backdrop-blur xl:block">
       <SidebarContent workspaceSlug={workspaceSlug} workspaces={workspaces} />
@@ -65,7 +58,7 @@ export function SidebarContent({
   workspaceSlug,
   workspaces,
   onNavigate,
-}: DashboardSidebarProps & { onNavigate?: () => void }) {
+}: WorkspaceNavigationProps & { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <>

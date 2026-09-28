@@ -12,7 +12,7 @@ import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 
 import { Button } from "@/components/ui/button";
-import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordInput } from "@/components/shared/password-input";
 import { Separator } from "@/components/ui/separator";
 
 import {

@@ -1,5 +1,8 @@
 "use client";
 
+import type { TaskStatus, TaskMember } from "@/types/task";
+import { statusOptions, priorityOptions } from "@/lib/constants/tasks";
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,9 +13,6 @@ import {
   createTaskSchema,
   type CreateTaskSchema,
 } from "@/lib/validations/taskValidator";
-
-import { updateTask } from "@/server/actions/task-actions";
-import { socket } from "@/lib/socket-client/socket";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,135 +36,81 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-type TaskStatus = "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-type TaskPriority = "LOW" | "MEDIUM" | "HIGH";
+import { createTask } from "@/server/actions/task-actions";
+import { socket } from "@/lib/socket-client/socket";
 
-type EditTask = {
-  id: string;
-  title: string;
-  description: string | null;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate: Date | string | null;
-  assignee: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-};
-
-type TaskMember = {
-  id: string;
-  name: string;
-  email: string;
-};
-
-type EditTaskDialogProps = {
+type CreateTaskDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultStatus: TaskStatus;
   workspaceSlug: string;
   projectId: string;
-  task: EditTask;
   members: TaskMember[];
 };
 
-const statusOptions: {
-  label: string;
-  value: TaskStatus;
-}[] = [
-  {
-    label: "Todo",
-    value: "TODO",
-  },
-  {
-    label: "In progress",
-    value: "IN_PROGRESS",
-  },
-  {
-    label: "Review",
-    value: "REVIEW",
-  },
-  {
-    label: "Done",
-    value: "DONE",
-  },
-];
-
-const priorityOptions: {
-  label: string;
-  value: TaskPriority;
-}[] = [
-  {
-    label: "Low",
-    value: "LOW",
-  },
-  {
-    label: "Medium",
-    value: "MEDIUM",
-  },
-  {
-    label: "High",
-    value: "HIGH",
-  },
-];
-
-export function EditTaskDialog({
+export function CreateTaskDialog({
   open,
   onOpenChange,
+  defaultStatus,
   workspaceSlug,
   projectId,
-  task,
   members,
-}: EditTaskDialogProps) {
+}: CreateTaskDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<CreateTaskSchema>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-      title: task.title,
-      description: task.description || "",
-      status: task.status,
-      priority: task.priority,
-      assigneeId: task.assignee?.id || "",
-      dueDate: task.dueDate ? formatDateForInput(task.dueDate) : "",
+      title: "",
+      description: "",
+      status: defaultStatus,
+      priority: "MEDIUM",
+      assigneeId: "",
+      dueDate: "",
     },
   });
 
   useEffect(() => {
     if (open) {
       form.reset({
-        title: task.title,
-        description: task.description || "",
-        status: task.status,
-        priority: task.priority,
-        assigneeId: task.assignee?.id || "",
-        dueDate: task.dueDate ? formatDateForInput(task.dueDate) : "",
+        title: "",
+        description: "",
+        status: defaultStatus,
+        priority: "MEDIUM",
+        assigneeId: "",
+        dueDate: "",
       });
     }
-  }, [open, task, form]);
+  }, [open, defaultStatus, form]);
 
   const onSubmit = async (values: CreateTaskSchema) => {
     try {
       setIsLoading(true);
 
-      const updatedTask = await updateTask(
+      const createdTask = await createTask(
         workspaceSlug,
         projectId,
-        task.id,
         values.title,
-        values.description || "",
+        values.description,
         values.status,
         values.priority,
-        values.assigneeId || "",
-        values.dueDate || "",
+        values.assigneeId,
+        values.dueDate,
       );
 
-      socket.emit("taskEdited", { projectId, task: updatedTask });
-      toast.success("Task updated!");
+      socket.emit("taskCreated", {
+        workspaceSlug,
+        projectId,
+        task: createdTask,
+      });
+
+      toast.success("Task created successfully!");
+
+      form.reset();
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update task");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -176,11 +122,11 @@ export function EditTaskDialog({
         <div className="border-b border-slate-200 px-6 py-5">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold tracking-tight text-slate-950">
-              Edit task
+              Create new task
             </DialogTitle>
 
             <DialogDescription className="text-sm text-slate-500">
-              Update task details, status, priority, assignee, or due date.
+              Add a task to this project and assign it to a workspace member.
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -198,6 +144,7 @@ export function EditTaskDialog({
                     <FormControl>
                       <Input
                         {...field}
+                        placeholder="Design dashboard sidebar"
                         disabled={isLoading}
                         className="h-11 rounded-xl"
                       />
@@ -218,6 +165,7 @@ export function EditTaskDialog({
                     <FormControl>
                       <Textarea
                         {...field}
+                        placeholder="Describe what should be done..."
                         disabled={isLoading}
                         className="min-h-28 resize-none rounded-xl"
                       />
@@ -349,7 +297,7 @@ export function EditTaskDialog({
                   disabled={isLoading}
                   className="h-11 cursor-pointer rounded-xl bg-amber-400 px-5 font-semibold text-slate-950 shadow-sm transition hover:bg-amber-500"
                 >
-                  {isLoading ? <Spinner /> : "Save changes"}
+                  {isLoading ? <Spinner /> : "Create task"}
                 </Button>
               </div>
             </form>
@@ -358,8 +306,4 @@ export function EditTaskDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
-function formatDateForInput(date: Date | string) {
-  return new Date(date).toISOString().split("T")[0];
 }

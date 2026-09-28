@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import crypto from "crypto";
 
-import InviteWorkspaceEmail from "../../components/ui/emails/invite-workspace-email";
+import InviteWorkspaceEmail from "@/components/emails/invite-workspace-email";
 
 import { getSession } from "@/lib/auth-server";
 

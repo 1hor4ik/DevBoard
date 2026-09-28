@@ -28,7 +28,7 @@ import { createWorkspace } from "@/server/actions/workspace-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import OnboardingFrame from "@/components/ui/onboarding/OnboardingFrame";
+import OnboardingFrame from "@/components/onboarding/onboarding-frame";
 
 import {
   Form,

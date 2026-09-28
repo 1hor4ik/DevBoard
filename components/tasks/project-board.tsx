@@ -1,5 +1,12 @@
 "use client";
 
+import type { Task, TaskMember, TaskStatus, TaskPriority } from "@/types/task";
+import type {
+  TaskEvent,
+  TaskDeletedEvent,
+  TaskStatusEvent,
+} from "@/types/socket";
+
 import { useState, useEffect, useTransition } from "react";
 import {
   CalendarDays,
@@ -64,47 +71,11 @@ import {
 
 import { CSS } from "@dnd-kit/utilities";
 
-type TaskStatus = "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-type TaskPriority = "LOW" | "MEDIUM" | "HIGH";
-
-type Task = {
-  id: string;
-  title: string;
-  description: string | null;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate: Date | string | null;
-  createdAt: Date | string;
-  assignee: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-  comments: {
-    id: string;
-    content: string;
-    createdAt: Date | string;
-
-    author: {
-      id: string;
-      name: string | null;
-      email: string;
-      image: string | null;
-    };
-  }[];
-};
-
-type BoardMember = {
-  id: string;
-  name: string;
-  email: string;
-};
-
 type ProjectBoardProps = {
   workspaceSlug: string;
   projectId: string;
   tasks: Task[];
-  members: BoardMember[];
+  members: TaskMember[];
 };
 
 const columns: {
@@ -143,25 +114,40 @@ export function ProjectBoard({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    const joinProject = () => { socket.emit("joinProjectRoom", projectId); };
-    const onCreated = (payload: { projectId: string; task: Task }) => {
-      if (payload.projectId !== projectId) return;
-      setLocalTasks((current) => current.some((task) => task.id === payload.task.id)
-        ? current : [...current, payload.task]);
+    const joinProject = () => {
+      socket.emit("joinProjectRoom", projectId);
     };
-    const onDeleted = (payload: { projectId: string; taskId: string }) => {
+    const onCreated = (payload: TaskEvent) => {
       if (payload.projectId !== projectId) return;
-      setLocalTasks((current) => current.filter((task) => task.id !== payload.taskId));
+      setLocalTasks((current) =>
+        current.some((task) => task.id === payload.task.id)
+          ? current
+          : [...current, payload.task],
+      );
     };
-    const onStatusUpdated = (payload: { projectId: string; taskId: string; status: TaskStatus }) => {
+    const onDeleted = (payload: TaskDeletedEvent) => {
       if (payload.projectId !== projectId) return;
-      setLocalTasks((current) => current.map((task) =>
-        task.id === payload.taskId ? { ...task, status: payload.status } : task));
+      setLocalTasks((current) =>
+        current.filter((task) => task.id !== payload.taskId),
+      );
     };
-    const onEdited = (payload: { projectId: string; task: Task }) => {
+    const onStatusUpdated = (payload: TaskStatusEvent) => {
       if (payload.projectId !== projectId) return;
-      setLocalTasks((current) => current.map((task) =>
-        task.id === payload.task.id ? payload.task : task));
+      setLocalTasks((current) =>
+        current.map((task) =>
+          task.id === payload.taskId
+            ? { ...task, status: payload.status }
+            : task,
+        ),
+      );
+    };
+    const onEdited = (payload: TaskEvent) => {
+      if (payload.projectId !== projectId) return;
+      setLocalTasks((current) =>
+        current.map((task) =>
+          task.id === payload.task.id ? payload.task : task,
+        ),
+      );
     };
 
     socket.on("taskCreated", onCreated);
@@ -378,7 +364,7 @@ function TaskColumn({
   tasks: Task[];
   workspaceSlug: string;
   projectId: string;
-  members: BoardMember[];
+  members: TaskMember[];
   onAddTask: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -446,7 +432,7 @@ function SortableTaskCard({
   task: Task;
   workspaceSlug: string;
   projectId: string;
-  members: BoardMember[];
+  members: TaskMember[];
 }) {
   const {
     attributes,
@@ -494,7 +480,7 @@ function TaskCard({
   task: Task;
   workspaceSlug: string;
   projectId: string;
-  members: BoardMember[];
+  members: TaskMember[];
   dragAttributes?: React.HTMLAttributes<HTMLButtonElement>;
   dragListeners?: React.HTMLAttributes<HTMLButtonElement>;
   isOverlay?: boolean;
